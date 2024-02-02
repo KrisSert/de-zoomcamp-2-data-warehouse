@@ -172,3 +172,11 @@ scratch*
 magic-zoomcamp
 *.json
 
+
+# adding python code exporters,transformers, loaders..
+!data_exporters/
+!data_loaders/
+!data_transformers/
+!pipelines/
+
+
