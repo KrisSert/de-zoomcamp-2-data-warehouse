@@ -169,14 +169,14 @@ node_modules
 scratch*
 /mage_data*
 *secrets*.json
-magic-zoomcamp
+magic-zoomcamp/*
 *.json
 
 
 # adding python code exporters,transformers, loaders..
-!data_exporters/
-!data_loaders/
-!data_transformers/
-!pipelines/
+!magic_zoomcamp/data_exporters/
+!magic_zoomcamp/data_loaders/
+!magic_zoomcamp/data_transformers/
+!magic_zoomcamp/pipelines/
 
 
