@@ -45,6 +45,13 @@ def transform(data, *args, **kwargs):
     # rename columns to snakecase
     cols_to_snake(data)
 
+    uniques_dates = data['lpep_pickup_date'].unique()
+    print(len(uniques_dates))
+
+    desired_dates = [pd.to_datetime('2009-01-01'), pd.to_datetime('2021-01-01')]
+    print(data[data['lpep_pickup_date'].isin(desired_dates)])
+
+
     return data
 
 

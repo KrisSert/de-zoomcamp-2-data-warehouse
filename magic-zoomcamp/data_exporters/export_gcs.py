@@ -24,7 +24,7 @@ def export_data_to_google_cloud_storage(df: DataFrame, **kwargs) -> None:
 
     project_id = 'de-zoomcamp-411619'
     bucket_name = 'mage-zoomcamp-kris-sert'
-    table_name = f'nyc_green_taxi_data/{}'
+    table_name = f'nyc_green_taxi_data'
     partition_column = 'lpep_pickup_date'
     root_path = f'{bucket_name}/{table_name}' 
 
