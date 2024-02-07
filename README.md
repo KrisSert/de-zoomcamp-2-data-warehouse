@@ -1,87 +1,61 @@
-<div>
-<img src="https://github.com/mage-ai/assets/blob/main/mascots/mascots-shorter.jpeg?raw=true">
-</div>
+THE datapipeline was build with mage to load the data to GCS bucket: pipeline name: "green_taxi_etl"
 
-## Data Engineering Zoomcamp - Week 2
+-- SETUP
+-- create the materialized table based on external table: (external table was created via bigquery studio browser ui)
+CREATE OR REPLACE TABLE `de-zoomcamp-411619.green_taxi_data.green_taxi_data`
+AS SELECT * FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data_external`;
 
-Welcome to DE Zoomcamp with Mage! 
+-- Q1.
+-- count all records loaded in the dataset
+SELECT count(*) FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data`;
+-- result: 840402
 
-Mage is an open-source, hybrid framework for transforming and integrating data. ✨
+-- Q2.
+-- count the distinct number of PULocationIDs for the entire dataset on both the tables.
+SELECT count(distinct pulocation_id)
+FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data`;
+-- result: 258, Bytes processed 6.41 MB, estimated: 6.41 MB
+SELECT count(distinct pulocation_id)
+FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data_external`;
+-- restult: 258, Bytes processed 6.41 MB, estimated: 0 MB
 
-In this module, you'll learn how to use the Mage platform to author and share _magical_ data pipelines. This will all be covered in the course, but if you'd like to learn a bit more about Mage, check out our docs [here](https://docs.mage.ai/introduction/overview). 
+-- Q3.
+-- How many records have a fare_amount of 0?
+select count(*) FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data` WHERE fare_amount=0;
+-- result: 1622
+-- double check: 
+select fare_amount, count(*) as cnt 
+FROM  `de-zoomcamp-411619.green_taxi_data.green_taxi_data` 
+WHERE fare_amount<1 and fare_amount>-1 
+group by fare_amount order by fare_amount asc;
 
-[Get Started](https://github.com/mage-ai/mage-zoomcamp?tab=readme-ov-file#lets-get-started)
-[Assistance](https://github.com/mage-ai/mage-zoomcamp?tab=readme-ov-file#assistance)
+-- Q4.
+-- partition by lpep_pickup_datetime, cluster on pulocation_id
+CREATE OR REPLACE TABLE `de-zoomcamp-411619.green_taxi_data.green_taxi_data_part_clust`
+PARTITION BY DATE(lpep_pickup_datetime)
+CLUSTER BY pulocation_id
+AS SELECT * FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data`;
 
-## Let's get started
+-- Q5.
+SELECT DISTINCT pulocation_id
+FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data`
+WHERE lpep_pickup_datetime BETWEEN TIMESTAMP('2022-06-01 00:00:00') AND TIMESTAMP('2022-06-30 23:59:59');
+-- 12.82 MB
+SELECT DISTINCT pulocation_id
+FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data_part_clust`
+WHERE lpep_pickup_datetime BETWEEN TIMESTAMP('2022-06-01 00:00:00') AND TIMESTAMP('2022-06-30 23:59:59');
+-- 1.12 MB
 
-This repo contains a Docker Compose template for getting started with a new Mage project. It requires Docker to be installed locally. If Docker is not installed, please follow the instructions [here](https://docs.docker.com/get-docker/). 
+-- Q6.
+--gcpbucket
 
-You can start by cloning the repo:
+-- Q7.
+--false. 
+-- For small tables, the benefits of clustering might be negligible, and the overhead of clustering might not be justified.
+-- If your data is infrequently queried or if your queries don't involve filtering or grouping, the impact of clustering might be minimal.
+-- If your queries are dynamic and don't consistently filter or group by the same columns, clustering might not provide significant benefits.
 
-```bash
-git clone https://github.com/mage-ai/mage-zoomcamp.git mage-zoomcamp
-```
-
-Navigate to the repo:
-
-```bash
-cd mage-data-engineering-zoomcamp
-```
-
-Rename `dev.env` to simply `.env`— this will _ensure_ the file is not committed to Git by accident, since it _will_ contain credentials in the future.
-
-Now, let's build the container
-
-```bash
-docker compose build
-```
-
-Finally, start the Docker container:
-
-```bash
-docker compose up
-```
-
-Now, navigate to http://localhost:6789 in your browser! Voila! You're ready to get started with the course. 
-
-### What just happened?
-
-We just initialized a new mage repository. It will be present in your project under the name `magic-zoomcamp`. If you changed the varable `PROJECT_NAME` in the `.env` file, it will be named whatever you set it to.
-
-This repository should have the following structure:
-
-```
-.
-├── mage_data
-│   └── magic-zoomcamp
-├── magic-zoomcamp
-│   ├── __pycache__
-│   ├── charts
-│   ├── custom
-│   ├── data_exporters
-│   ├── data_loaders
-│   ├── dbt
-│   ├── extensions
-│   ├── interactions
-│   ├── pipelines
-│   ├── scratchpads
-│   ├── transformers
-│   ├── utils
-│   ├── __init__.py
-│   ├── io_config.yaml
-│   ├── metadata.yaml
-│   └── requirements.txt
-├── Dockerfile
-├── README.md
-├── dev.env
-├── docker-compose.yml
-└── requirements.txt
-```
-
-## Assistance
-
-1. [Mage Docs](https://docs.mage.ai/introduction/overview): a good place to understand Mage functionality or concepts.
-2. [Mage Slack](https://www.mage.ai/chat): a good place to ask questions or get help from the Mage team.
-3. [DTC Zoomcamp](https://github.com/DataTalksClub/data-engineering-zoomcamp/tree/main/week_2_workflow_orchestration): a good place to get help from the community on course-specific inquireies.
-4. [Mage GitHub](https://github.com/mage-ai/mage-ai): a good place to open issues or feature requests.
+-- Q8.
+SELECT *
+FROM `de-zoomcamp-411619.green_taxi_data.green_taxi_data`;
+-- 114.63 bytes, because it will read the whole table with all of its columns
